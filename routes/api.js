@@ -113,9 +113,9 @@ module.exports = function (app) {
   .get(function(req, res){
     const board = req.params.board;
     
-    Thread.find({board}, {delete_password: 0})
+    Thread.find({board}, {delete_password: 0, reported: 0})
     .sort({ bumped_on: -1 }).limit(10)
-    .populate({ path: 'replies', options: { limit: 3, sort: { created_on: -1 }, select: { delete_password: 0 } } }).then((threads) => {
+    .populate({ path: 'replies', options: { limit: 3, sort: { created_on: -1 }, select: { delete_password: 0, reported: 0 } } }).then((threads) => {
       res.json(threads);
     });
     
@@ -130,7 +130,12 @@ module.exports = function (app) {
     });
     
     thread.save()
-    .then(thread => res.redirect('/b/' + board));
+    .then(thread => {
+      if(process.env.NODE_ENV !== 'test')
+         res.redirect('/b/' + board)
+      else
+        res.send('success')
+    });
     
   })
   .put(function(req, res){
@@ -179,8 +184,8 @@ module.exports = function (app) {
     const thread_id = req.query.thread_id;
     
     Thread.findById(thread_id)
-    .select({ delete_password: 0 })
-    .populate({ path: 'replies', options: { select: { delete_password: 0 } } })
+    .select({ delete_password: 0, reported: 0 })
+    .populate({ path: 'replies', options: { select: { delete_password: 0, reported: 0 } } })
     .then(thread => res.json(thread));
   })
   .post(function(req, res){
@@ -201,7 +206,12 @@ module.exports = function (app) {
       thread.replies.push(reply);
       return thread.save();
     })
-    .then(() => {res.redirect('/b/' + board + '/' + reply.thread_id)});
+    .then(() => {
+      if(process.env.NODE_ENV !== 'test')
+        res.redirect('/b/' + board + '/' + reply.thread_id)
+      else
+        res.send('sucess');
+    });
     
   })
   .put(function(req, res){

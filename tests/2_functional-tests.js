@@ -27,7 +27,8 @@ suite('Functional Tests', function() {
         .send({ text: 'test', delete_password: '1234' })
         .end(function(err, res){
           assert.equal(res.status, 200);
-          assert.equal(res.body, { text: 'test' })
+          assert.equal(res.text, 'success');
+          done();
         });
         
       });
@@ -36,9 +37,25 @@ suite('Functional Tests', function() {
     
     suite('GET', function() {
       
+      test('get all threads in test board', (done) => {
+        chai
+        .request(server)
+        .get('/api/threads/test')
+        .query()
+        .end((err, res) => {
+          assert.equal(res.status, 200);
+          assert.isArray(res.body);
+          done();
+        })
+      })
+      
+      
+      
     });
     
     suite('DELETE', function() {
+      
+      test('delete threads with password invalid', ())
       
     });
     
