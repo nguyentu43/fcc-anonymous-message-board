@@ -106,7 +106,7 @@ module.exports = function (app) {
   .get(function(req, res){
     const board = req.params.board;
     
-    Thread.sort({ bumped_on: -1 }).limit(10).populate('replies').then((threads) => {
+    Thread.sort({ bumped_on: -1 }).limit(10).populate({ path: 'replies', options: { limit: 3, sort: { created_on: -1 } } }).then((threads) => {
       res.json(threads);
     });
     
@@ -166,12 +166,37 @@ module.exports = function (app) {
   app.route('/api/replies/:board')
   .get(function(req, res){
     const board = req.params.board;
+    const thread_id = req.query.thread_id;
+    
+    Reply.find({ thread_id })
+    .then(threads => res.json(threads));
+    
   })
   .post(function(req, res){
     const board = req.params.board;
+    
+    const reply = new Reply({
+      text: req.body.text,
+      delete_password: req.body.delete_password,
+      thread_id: req.body.thread_id
+    })
+    
+    reply.save()
+    .then(reply => {
+      return Thread.findOne({ _id: reply.thread_id });
+    })
+    .then(thread => {
+      thread.replies.push(reply);
+      return thread.save();
+    })
+    .then(() => res.json(reply));
+    
   })
   .put(function(req, res){
     const board = req.params.board;
+    const reply_id = req.body.reply_id;
+    
+    Reply.findOneAndUpda()
   })
   .delete(function(req, res){
     const board = req.params.board;
