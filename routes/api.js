@@ -38,6 +38,8 @@ const schemaThread = mongoose.Schema({
   replies:  [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reply' }]
 });
 
+
+
 const Thread = mongoose.model('Thread', schemaThread);
 
 const schemaReply = mongoose.Schema({
@@ -59,10 +61,47 @@ const schemaReply = mongoose.Schema({
   }
 });
 
+const Reply = mongoose.model('Reply', schemaReply);
+
 module.exports = function (app) {
   
-  app.route('/api/threads/:board');
+  app.route('/api/threads/:board')
+  .get(function(req, res){
+    const board = req.params.board;
     
-  app.route('/api/replies/:board');
+    Thread.find({}).then((threads) => {
+      res.json(threads);
+    });
+    
+  })
+  .post(function(req, res){
+    const board = req.params.board;
+    
+    const thread = new Thread({
+      text: req.body.text,
+      delete_password: req.body.delete_password;
+    });
+    
+  })
+  .put(function(req, res){
+    const board = req.params.board;
+  })
+  .delete(function(req, res){
+    const board = req.params.board;
+  })
+    
+  app.route('/api/replies/:board')
+  .get(function(req, res){
+    const board = req.params.board;
+  })
+  .post(function(req, res){
+    const board = req.params.board;
+  })
+  .put(function(req, res){
+    const board = req.params.board;
+  })
+  .delete(function(req, res){
+    const board = req.params.board;
+  })
 
 };
