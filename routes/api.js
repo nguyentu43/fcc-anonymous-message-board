@@ -143,7 +143,7 @@ module.exports = function (app) {
     const thread_id = req.body.thread_id;
     
     Thread
-    .findOneAndUpdate({ board, thread_id }, { $set: { reported: true } })
+    .findOneAndUpdate({ board, _id: thread_id }, { $set: { reported: true } })
     .then(thread => {
       if(thread)
         res.send('success');
@@ -158,7 +158,7 @@ module.exports = function (app) {
     const delete_password = req.body.delete_password;
     
     Thread
-    .findOne({ board, thread_id })
+    .findOne({ board, _id: thread_id })
     .then(thread => {
       if(thread)
         {

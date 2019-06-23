@@ -59,7 +59,7 @@ suite('Functional Tests', function() {
         chai
         .request(server)
         .delete('/api/threads/test')
-        .send({ delete_password: '1111', thread_id: '5d0facb394de9544b0999bf2'})
+        .send({ delete_password: '1111', thread_id: '5d0faf8badac8e4d07df8ee7'})
         .end((err, res) => {
           assert.equal(res.status, 200);
           assert.equal(res.text, 'incorrect password');
@@ -73,7 +73,7 @@ suite('Functional Tests', function() {
         chai
         .request(server)
         .delete('/api/threads/test')
-        .send({ delete_password: '1234', thread_id: '5d0facb394de9544b0999bf2'})
+        .send({ delete_password: '1234', thread_id: '5d0faf8badac8e4d07df8ee7'})
         .end((err, res) => {
           assert.equal(res.status, 200);
           assert.equal(res.text, 'success');
@@ -90,7 +90,7 @@ suite('Functional Tests', function() {
         chai
         .request(server)
         .put('/api/threads/test')
-        .send({thread_id: '5d0fa81e6050b81bfc24f12c'})
+        .send({thread_id: '5d0fad76fe48ba47df2c1c05'})
         .end((err, res) => {
           assert.equal(res.status, 200);
           assert.equal(res.text, 'success');
