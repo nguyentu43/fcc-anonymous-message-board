@@ -37,7 +37,7 @@ const schemaThread = mongoose.Schema({
     required: true
   },
   replies:  [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reply' }]
-});
+}, { versionKey: false });
 
 schemaThread.pre('save', function(next){
   let thread = this;
@@ -77,7 +77,7 @@ const schemaReply = mongoose.Schema({
     type: Date,
     default: moment().format('YYYY-MM-DD HH:mm:ss')
   }
-});
+}, { versionKey: false });
 
 schemaReply.pre('save', function(next){
   let reply = this;
@@ -127,16 +127,14 @@ module.exports = function (app) {
   .put(function(req, res){
     const board = req.params.board;
     const thread_id = req.body.thread_id;
-    const reported = req.body.reported;
     
     Thread
-    .findOneAndUpdate({ board, thread_id }, { $set: { reported } }, { new: true })
+    .findOneAndUpdate({ board, thread_id }, { $set: { reported: true } })
     .then(thread => {
       if(thread)
         res.send('success');
       else
         res.send('thread not found');
-      
     });
     
   })
@@ -152,7 +150,10 @@ module.exports = function (app) {
         {
           if(thread.validPassword(delete_password))
             {
-              thread.remove().then(() => res.send('success'));
+              Reply.remove({ thread_id })
+              .then(() => {
+                thread.remove().then(() => res.send('success'));
+              });
             }
           else
             res.send('incorrect password');
@@ -169,7 +170,7 @@ module.exports = function (app) {
     const thread_id = req.query.thread_id;
     
     Reply.find({ thread_id })
-    .then(threads => res.json(threads));
+    .then(threads => res.json(threads.map(thread => thread.toJSON())));
     
   })
   .post(function(req, res){
@@ -189,17 +190,42 @@ module.exports = function (app) {
       thread.replies.push(reply);
       return thread.save();
     })
-    .then(() => res.json(reply));
+    .then(() => res.json(reply.toJSON()));
     
   })
   .put(function(req, res){
     const board = req.params.board;
     const reply_id = req.body.reply_id;
     
-    Reply.findOneAndUpda()
+    Reply.findOneAndUpdate({ _id: reply_id }, { $set: { reported: true } })
+    .then(reply => {
+      if(reply)
+        res.send('success');
+      else
+        res.send('reply not found')
+    })
   })
   .delete(function(req, res){
     const board = req.params.board;
+    const reply_id = req.body.reply_id;
+    const delete_password = req.body.delete_password;
+    
+    Reply.findById(reply_id)
+    .then(reply => {
+      if(reply)
+        {
+          if(reply.validPassword(delete_password))
+            {
+              reply.text = "[deleted]";
+              reply.save().then(() => res.send('success'));
+            }
+          else
+            res.send('incorrect password');
+          
+        }
+      else
+        res.send('reply not found')
+    })
   })
 
 };
