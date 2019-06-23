@@ -55,7 +55,6 @@ schemaThread.methods.validPassword = function(password){
 schemaThread.methods.toJSON = function(){
   const obj = this.toObject();
   obj.replycount = obj.replies.length;
-  delete obj.delete_password;
   return obj;
 }
 
@@ -88,12 +87,6 @@ schemaReply.pre('save', function(next){
   next();
 });
 
-schemaReply.methods.toJSON = function(){
-  const obj = this.toObject();
-  delete obj.delete_password;
-  return obj;
-}
-
 schemaReply.methods.validPassword = function(password){
   let reply = this;
   return bcrypt.compareSync(password, reply.delete_password);
@@ -107,7 +100,9 @@ module.exports = function (app) {
   .get(function(req, res){
     const board = req.params.board;
     
-    Thread.find({board}).sort({ bumped_on: -1 }).limit(10).populate({ path: 'replies', options: { limit: 3, sort: { created_on: -1 } } }).then((threads) => {
+    Thread.find({board}, {delete_password: 0})
+    .sort({ bumped_on: -1 }).limit(10)
+    .populate({ path: 'replies', options: { limit: 3, sort: { created_on: -1 }, select: { delete_password: 0 } } }).then((threads) => {
       res.json(threads);
     });
     
@@ -170,8 +165,9 @@ module.exports = function (app) {
     const board = req.params.board;
     const thread_id = req.query.thread_id;
     
-    Reply.find({ thread_id })
-    .then(threads => res.json(threads.map(thread => thread.toJSON())));
+    Thread.findById(thread_id)
+    .populate({ path: 'replies', options: { select: { delete_password: 0 } } })
+    .then(thread => res.json(thread));
     
   })
   .post(function(req, res){
