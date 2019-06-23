@@ -106,7 +106,7 @@ module.exports = function (app) {
   .get(function(req, res){
     const board = req.params.board;
     
-    Thread.find({}).then((threads) => {
+    Thread.sort({ bumped_on: -1 }).limit(10).populate('replies').then((threads) => {
       res.json(threads);
     });
     
@@ -152,8 +152,10 @@ module.exports = function (app) {
         {
           if(thread.validPassword(delete_password))
             {
-              thread.remove()
+              thread.remove().then(() => res.send('success'));
             }
+          else
+            res.send('incorrect password');
         }
       else
         res.send('thread not found')
