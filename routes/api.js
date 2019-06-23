@@ -19,7 +19,10 @@ const schemaThread = mongoose.Schema({
     type: String,
     required: true
   },
-  delete_password: String,
+  delete_password: {
+    type: String,
+    required: true
+  },
   created_on: {
     type: Date,
     default: moment().format('YYYY-MM-DD HH:mm:ss')
@@ -55,6 +58,7 @@ schemaThread.methods.validPassword = function(password){
 schemaThread.methods.toJSON = function(){
   const obj = this.toObject();
   obj.replycount = obj.replies.length;
+  delete obj.delete_password;
   return obj;
 }
 
@@ -65,7 +69,10 @@ const schemaReply = mongoose.Schema({
     type: String,
     required: true
   },
-  delete_password: String,
+  delete_password: {
+    type: String,
+    required: true
+  },
   thread_id: {
     type: mongoose.Schema.Types.ObjectId, ref: 'Reply'
   },
@@ -78,6 +85,12 @@ const schemaReply = mongoose.Schema({
     default: moment().format('YYYY-MM-DD HH:mm:ss')
   }
 }, { versionKey: false });
+
+schemaReply.methods.toJSON = function(){
+  const obj = this.toObject();
+  delete obj.delete_password;
+  return obj;
+}
 
 schemaReply.pre('save', function(next){
   let reply = this;
@@ -166,9 +179,9 @@ module.exports = function (app) {
     const thread_id = req.query.thread_id;
     
     Thread.findById(thread_id)
+    .select({ delete_password: 0 })
     .populate({ path: 'replies', options: { select: { delete_password: 0 } } })
     .then(thread => res.json(thread));
-    
   })
   .post(function(req, res){
     const board = req.params.board;
@@ -184,10 +197,11 @@ module.exports = function (app) {
       return Thread.findOne({ _id: reply.thread_id });
     })
     .then(thread => {
+      thread.bumped_on = moment().format('YYYY-MM-DD HH:mm:ss');
       thread.replies.push(reply);
       return thread.save();
     })
-    .then(() => res.redirect('/b/' + board + '/' + reply.thread_id));
+    .then(() => {res.redirect('/b/' + board + '/' + reply.thread_id)});
     
   })
   .put(function(req, res){

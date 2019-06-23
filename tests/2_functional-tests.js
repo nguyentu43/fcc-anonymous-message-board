@@ -19,6 +19,19 @@ suite('Functional Tests', function() {
     
     suite('POST', function() {
       
+      test('add thread to board: test', function(done){
+        
+        chai
+        .request(server)
+        .post('/api/threads/test')
+        .send({ text: 'test', delete_password: '1234' })
+        .end(function(err, res){
+          assert.equal(res.status, 200);
+          assert.equal(res.body, { text: 'test' })
+        });
+        
+      });
+      
     });
     
     suite('GET', function() {
