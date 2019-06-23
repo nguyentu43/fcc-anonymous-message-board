@@ -54,6 +54,7 @@ schemaThread.methods.validPassword = function(password){
 
 schemaThread.methods.toJSON = function(){
   const obj = this.toObject();
+  obj.replycount = obj.replies.length;
   delete obj.delete_password;
   return obj;
 }
@@ -106,7 +107,7 @@ module.exports = function (app) {
   .get(function(req, res){
     const board = req.params.board;
     
-    Thread.sort({ bumped_on: -1 }).limit(10).populate({ path: 'replies', options: { limit: 3, sort: { created_on: -1 } } }).then((threads) => {
+    Thread.find({board}).sort({ bumped_on: -1 }).limit(10).populate({ path: 'replies', options: { limit: 3, sort: { created_on: -1 } } }).then((threads) => {
       res.json(threads);
     });
     
@@ -121,7 +122,7 @@ module.exports = function (app) {
     });
     
     thread.save()
-    .then(thread => res.json(thread.toJSON()));
+    .then(thread => res.redirect('/b/' + board));
     
   })
   .put(function(req, res){
@@ -190,7 +191,7 @@ module.exports = function (app) {
       thread.replies.push(reply);
       return thread.save();
     })
-    .then(() => res.json(reply.toJSON()));
+    .then(() => res.redirect('/b/' + board + '/' + reply.thread_id));
     
   })
   .put(function(req, res){
