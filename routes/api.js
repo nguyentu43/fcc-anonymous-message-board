@@ -126,11 +126,39 @@ module.exports = function (app) {
   })
   .put(function(req, res){
     const board = req.params.board;
-    const thread_id = req.params.thread_id;
-    const reported = 
+    const thread_id = req.body.thread_id;
+    const reported = req.body.reported;
+    
+    Thread
+    .findOneAndUpdate({ board, thread_id }, { $set: { reported } }, { new: true })
+    .then(thread => {
+      if(thread)
+        res.send('success');
+      else
+        res.send('thread not found');
+      
+    });
+    
   })
   .delete(function(req, res){
     const board = req.params.board;
+    const thread_id = req.body.thread_id;
+    const delete_password = req.body.delete_password;
+    
+    Thread
+    .findOne({ board, thread_id })
+    .then(thread => {
+      if(thread)
+        {
+          if(thread.validPassword(delete_password))
+            {
+              thread.remove()
+            }
+        }
+      else
+        res.send('thread not found')
+    });
+    
   })
     
   app.route('/api/replies/:board')
