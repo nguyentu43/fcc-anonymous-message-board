@@ -189,6 +189,7 @@ module.exports = function (app) {
     .then(thread => res.json(thread));
   })
   .post(function(req, res){
+    
     const board = req.params.board;
     
     const reply = new Reply({
@@ -210,7 +211,7 @@ module.exports = function (app) {
       if(process.env.NODE_ENV !== 'test')
         res.redirect('/b/' + board + '/' + reply.thread_id)
       else
-        res.send('sucess');
+        res.send('success');
     });
     
   })
