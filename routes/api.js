@@ -9,7 +9,8 @@
 'use strict';
 
 var expect = require('chai').expect;
-const moment = require('moment')l
+const moment = require('moment');
+const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 mongoose.connect(process.env.DB);
 
@@ -38,7 +39,24 @@ const schemaThread = mongoose.Schema({
   replies:  [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reply' }]
 });
 
+schemaThread.pre('save', function(next){
+  let thread = this;
+  if(thread.isModified('delete_password')){
+    thread.delete_password = bcrypt.hashSync(thread.delete_password, 10);
+  }
+  next();
+});
 
+schemaThread.methods.validPassword = function(password){
+  let thread = this;
+  return bcrypt.compareSync(password, thread.delete_password);
+};
+
+schemaThread.methods.toJSON = function(){
+  const obj = this.toObject();
+  delete obj.delete_password;
+  return obj;
+}
 
 const Thread = mongoose.model('Thread', schemaThread);
 
@@ -61,6 +79,25 @@ const schemaReply = mongoose.Schema({
   }
 });
 
+schemaReply.pre('save', function(next){
+  let reply = this;
+  if(reply.isModified('delete_password')){
+    reply.delete_password = bcrypt.hashSync(reply.delete_password, 10);
+  }
+  next();
+});
+
+schemaReply.methods.toJSON = function(){
+  const obj = this.toObject();
+  delete obj.delete_password;
+  return obj;
+}
+
+schemaReply.methods.validPassword = function(password){
+  let reply = this;
+  return bcrypt.compareSync(password, reply.delete_password);
+};
+
 const Reply = mongoose.model('Reply', schemaReply);
 
 module.exports = function (app) {
@@ -79,12 +116,18 @@ module.exports = function (app) {
     
     const thread = new Thread({
       text: req.body.text,
-      delete_password: req.body.delete_password;
+      delete_password: req.body.delete_password,
+      board
     });
+    
+    thread.save()
+    .then(thread => res.json(thread.toJSON()));
     
   })
   .put(function(req, res){
     const board = req.params.board;
+    const thread_id = req.params.thread_id;
+    const reported = 
   })
   .delete(function(req, res){
     const board = req.params.board;
