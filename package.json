@@ -21,7 +21,7 @@
     "helmet": "^3.18.0",
     "mongoose": "^5.5.12",
     "moment": "^2.24.0",
-    "bcrypt": "^3.0.6"
+    "bcrypt": "^5.0.0"
   },
   "engines": {
     "node": "8.x"
